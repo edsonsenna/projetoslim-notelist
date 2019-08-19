@@ -11,59 +11,78 @@ import NewPage from './pages/new';
 import EditPage from './pages/edit';
 
 import DB from './db';
-
+import PouchDB from 'pouchdb';
 
 class App extends Component{
+
+
   state = {
-    db: new DB('react-notes'),
+    localdb: null,
+    remotedb: null,
     notes: {},
     loading: true
   }
 
   async componentDidMount() {
 
-    /*
-    const remoteDB = await new DB('http://admin:adm123@127.0.0.1:5984/react-notes');
+    var localDB = new DB('react-notes');
+    //var localDB = new PouchDB('react-notes');
 
-    console.log(remoteDB);
+    var remoteDB = new PouchDB('http://admin:adm123@127.0.0.1:5984/react-notes');
 
-    this.db.sync(remoteDB, {
-            
-      }).on('change', function (info) {
-      // handle change
-          console.log('Mudou!');
-      }).on('paused', function (err) {
-      // replication paused (e.g. replication up to date, user went offline)
-      }).on('active', function () {
-      // replicate resumed (e.g. new changes replicating, user went back online)
-      }).on('denied', function (err) {
-      // a document failed to replicate (e.g. due to permissions)
-      }).on('complete', function (info) {
-      // handle complete
-          console.log('Complete!');
-      }).on('error', function (err) {
-      // handle error
+    //console.log(localDB);
+
+    localDB.db.sync(remoteDB, {})
+      .on('change',function(info){
+      console.log('Change!');
+    }).on('complete',function(info){
+      console.log('Sync!');
+    });
+    
+    remoteDB.changes({
+      since: 'now',
+      live: true,
+      include_docs: true,
+      retry: true, 
+      style: 'all_docs'
+    }).on('change', function(changes){
+      console.log(changes);
     });
 
-    remoteDB.changes({
+    //this.state.db = new DB('react-notes');
+
+    const notes = await localDB.getAllNotes();
+
+   // const db_sync = await this.state.db.getRemoteDb();
+
+    const notas = notes;
+
+    this.state.localdb = localDB;
+    this.state.remotedb = remoteDB.db;
+
+    /*db_sync.changes({
         since: 'now',
         live: true,
         include_docs: true,
         retry: true, 
         style: 'all_docs'
     }).on('change', function(changes){
-        console.log('Mudou1! => ', changes);
+        console.log(changes);
+        notas[changes.doc._id] = changes.doc;
+        console.log(notas);
+
     });*/
-    const notes = await this.state.db.getAllNotes();
+
+    console.log(notas);
 
     this.setState({
-      notes,
+      notes: notas,
       loading: false
     });
   }
 
   handleSave = async (note) => {
-    let { id } = await this.state.db.createNote(note);
+    let { id } = await this.state.localdb.createNote(note);
 
     const { notes } = this.state;
 
@@ -75,7 +94,7 @@ class App extends Component{
     });
 
 
-    const _notes = await this.state.db.getAllNotes();
+    const _notes = await this.state.localdb.getAllNotes();
 
     await this.setState({
       notes: _notes
@@ -86,7 +105,7 @@ class App extends Component{
 
   handleUpdate = async (n) => {
 
-    let note = await this.state.db.updateNote(n);
+    let note = await this.state.localdb.updateNote(n);
 
     const { notes } = this.state;
 
@@ -97,7 +116,7 @@ class App extends Component{
     }
 
 
-    const _notes = await this.state.db.getAllNotes();
+    const _notes = await this.state.localdb.getAllNotes();
 
     await this.setState({
       notes: _notes

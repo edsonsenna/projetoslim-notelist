@@ -3,7 +3,9 @@ import PouchDB from 'pouchdb';
 export default class DB {
     constructor(name) {
         this.db = new PouchDB(name);
-        
+
+       // console.log(this.db);
+        /*
         this.remoteDB = new PouchDB('http://admin:adm123@127.0.0.1:5984/react-notes');
 
         this.db.sync(this.remoteDB, {
@@ -24,7 +26,7 @@ export default class DB {
         // handle error
         });
 
-
+        /*
         this.remoteDB.changes({
             since: 'now',
             live: true,
@@ -33,8 +35,36 @@ export default class DB {
             style: 'all_docs'
         }).on('change', function(changes){
             console.log('Mudou1! => ', changes);
-        });
+        });*/
           
+    }
+
+    async getRemoteDb() {
+
+        let allNotes = await this.db.allDocs({
+            include_docs: true
+        });
+
+        let notes = {};
+
+        allNotes.rows.forEach( n => notes[n.id] = n.doc);
+
+        return this.remoteDB;
+
+    }
+
+    async getLocalDb() {
+
+        let allNotes = await this.db.allDocs({
+            include_docs: true
+        });
+
+        let notes = {};
+
+        allNotes.rows.forEach( n => notes[n.id] = n.doc);
+
+        return this.db;
+
     }
 
     async getAllNotes() {
@@ -46,8 +76,6 @@ export default class DB {
         let notes = {};
 
         allNotes.rows.forEach( n => notes[n.id] = n.doc);
-
-
 
         return notes;
 
