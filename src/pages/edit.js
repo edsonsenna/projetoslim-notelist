@@ -11,6 +11,10 @@ export default class EditPage extends React.Component {
         note: {}
     }
 
+    componentDidMount() {
+        this.setState({ note: {...this.props.note} });
+    }
+
 
     updateValue = (e) => {
         const { note } = this.state;
@@ -18,9 +22,10 @@ export default class EditPage extends React.Component {
         this.setState({
             note: {...note, [e.target.name]: e.target.value }
         });
+
     }
 
-    handleSave = async (e) => {
+    handleUpdate = async (e) => {
         e.preventDefault();
 
         const id = await this.props.onUpdate(this.state.note);
@@ -29,9 +34,8 @@ export default class EditPage extends React.Component {
     }
 
     render() {
-        const { note } = this.props;
+        const { note } = this.state;
 
-        console.log(note);
 
         if (!note) {
             return null;
@@ -40,13 +44,14 @@ export default class EditPage extends React.Component {
         return (
             <div className="note-form">
                 <h1>New Note</h1>
-                <form onSubmit={this.handleSave}>
+                <form onSubmit={this.handleUpdate}>
+                    <input type="hidden" name="_id" id="_id" value={note._id || ''} />
                     <div className="note-form-field">
                         <label>Title</label>
-                        <input type="text" name="title" value={note.title} onChange={this.updateValue}/>
+                        <input type="text" name="title" value={note.title || ''} onChange={this.updateValue}/>
                     </div>
                     <div className="note-form-field note-form-field-text">
-                        <textarea name="body" value={note.body} onChange={this.updateValue} />
+                        <textarea name="body" value={note.body || ''} onChange={this.updateValue} />
                     </div>
                     <div className="note-form-buttons">
                         <button className="btn">Save</button>

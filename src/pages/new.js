@@ -37,7 +37,6 @@ export default class NewPage extends React.Component {
     render() {
         const { note } = this.state;
 
-        console.log(this.props);
 
         return (
             
@@ -46,10 +45,10 @@ export default class NewPage extends React.Component {
                 <form onSubmit={this.handleSave}>
                     <div className="note-form-field">
                         <label>Title</label>
-                        <input type="text" name="title" value={note.title} onChange={this.updateValue}/>
+                        <input type="text" name="title" value={note.title || ''} onChange={this.updateValue}/>
                     </div>
                     <div className="note-form-field note-form-field-text">
-                        <textarea name="body" value={note.body} onChange={this.updateValue} />
+                        <textarea name="body" value={note.body || ''} onChange={this.updateValue} />
                     </div>
                     <div className="note-form-buttons">
                         <button className="btn">Save</button>
