@@ -39,17 +39,15 @@ class App extends Component{
       .on('change',function(info){
       console.log('Change!', info);
 
-      // var nots = info.change.docs;
-      // var nota_redux = redux.notes;
-      
-      // nots.forEach(function(value){
-      //   nota_redux[value._id] = value;
-      // });
+    }).on('active',function(info){
+      console.log('Voltou a net!');
 
-      // redux.updateNotes(nots);
 
-    }).on('complete',function(info){
+    })
+    .on('complete',function(info){
       console.log('Sync!', info);
+    }).on('error', function(err){
+      console.log(err);
     });
 
     
@@ -99,25 +97,11 @@ class App extends Component{
   }
 
   handleSave = async (note) => {
-    let { id } = await this.state.localdb.createNote(note);
+    let { id } = await this.state.db.createNote(note);
 
-    const { notes } = this.state;
+    const notas = await this.state.db.getAllNotes();
 
-    await this.setState({
-      notes: {
-        ...notes, 
-        [id]: note,
-      }
-    });
-
-
-    const _notes = await this.state.localdb.getAllNotes();
-
-    await this.setState({
-      notes: _notes
-    });
-
-    this.props.updateNotes(_notes);
+    this.props.updateNotes(notas);
 
     return id;
   }
@@ -129,28 +113,6 @@ class App extends Component{
     const notas = await this.state.db.getAllNotes();
 
     this.props.updateNotes(notas);
-
-
-    // const { notes } = this.props;
-
-    // console.log('Update Notas do Redux => ', notes);
-
-    // notes[note.id] = {
-    //   ...notes[note.id],
-    //   "_id": note.id,
-    //   "_rev": note.rev
-    // }
-
-
-    // const _notes = await this.state.db.getAllNotes();
-
-    // await this.setState({
-    //   notes: _notes
-    // });
-
-    // this.props.updateNotes(notes);
-
-    // console.log('Update Notas do Redux Pos => ', this.props.notes);
 
     return note.id;
 
