@@ -13,72 +13,89 @@ import EditPage from './pages/edit';
 import DB from './db';
 import PouchDB from 'pouchdb';
 
+
+import { connect } from 'react-redux';
+
+import updateNotes from './actions/updateNotes';
+
 class App extends Component{
 
 
   state = {
-    localdb: null,
-    remotedb: null,
-    notes: {},
+    db:  new DB('react-notes'),
+    notes: [],
     loading: true
   }
 
   async componentDidMount() {
 
-    var localDB = new DB('react-notes');
-    //var localDB = new PouchDB('react-notes');
-
     var remoteDB = new PouchDB('http://admin:adm123@127.0.0.1:5984/react-notes');
 
-    //console.log(localDB);
+    const self = this;
 
-    localDB.db.sync(remoteDB, {})
+    this.state.db.db.sync(remoteDB, {
+      live:true
+    })
       .on('change',function(info){
-      console.log('Change!');
+      console.log('Change!', info);
+
+      // var nots = info.change.docs;
+      // var nota_redux = redux.notes;
+      
+      // nots.forEach(function(value){
+      //   nota_redux[value._id] = value;
+      // });
+
+      // redux.updateNotes(nots);
+
     }).on('complete',function(info){
-      console.log('Sync!');
+      console.log('Sync!', info);
     });
+
     
+    const notas = await this.state.db.getAllNotes();
+    //this.state.notes = notas;
+
     remoteDB.changes({
-      since: 'now',
-      live: true,
-      include_docs: true,
-      retry: true, 
-      style: 'all_docs'
-    }).on('change', function(changes){
-      console.log(changes);
-    });
-
-    //this.state.db = new DB('react-notes');
-
-    const notes = await localDB.getAllNotes();
-
-   // const db_sync = await this.state.db.getRemoteDb();
-
-    const notas = notes;
-
-    this.state.localdb = localDB;
-    this.state.remotedb = remoteDB.db;
-
-    /*db_sync.changes({
         since: 'now',
         live: true,
         include_docs: true,
         retry: true, 
         style: 'all_docs'
-    }).on('change', function(changes){
-        console.log(changes);
-        notas[changes.doc._id] = changes.doc;
-        console.log(notas);
+    }).on('change', async function(changes){
+        console.log('Changes => ', changes);
+        // console.log('State => ', self);
+        // var _notas = self.props.notes;
+        // _notas[changes.doc._id] = changes.doc;
 
-    });*/
+        
+        // self.props.updateNotes(_notas);
 
-    console.log(notas);
+        const notas = await remoteDB.allDocs({include_docs: true});
 
+        let notes = {};
+
+        notas.rows.forEach( n => notes[n.id] = n.doc);
+        
+        self.props.updateNotes(notes);
+    });
+
+    ///console.log(notas);
+
+
+    this.props.updateNotes(notas);
+
+    //const _notas = await this.state.db.getAllNotes();
+
+    //this.props.updateNotes(_notas);
+    
     this.setState({
-      notes: notas,
+    //   ...this.state,
       loading: false
     });
+
+
+    
   }
 
   handleSave = async (note) => {
@@ -100,27 +117,40 @@ class App extends Component{
       notes: _notes
     });
 
+    this.props.updateNotes(_notes);
+
     return id;
   }
 
   handleUpdate = async (n) => {
 
-    let note = await this.state.localdb.updateNote(n);
+    let note = await this.state.db.updateNote(n);
 
-    const { notes } = this.state;
+    const notas = await this.state.db.getAllNotes();
 
-    notes[note.id] = {
-      ...notes[note.id],
-      "_id": note.id,
-      "_rev": note.rev
-    }
+    this.props.updateNotes(notas);
 
 
-    const _notes = await this.state.localdb.getAllNotes();
+    // const { notes } = this.props;
 
-    await this.setState({
-      notes: _notes
-    });
+    // console.log('Update Notas do Redux => ', notes);
+
+    // notes[note.id] = {
+    //   ...notes[note.id],
+    //   "_id": note.id,
+    //   "_rev": note.rev
+    // }
+
+
+    // const _notes = await this.state.db.getAllNotes();
+
+    // await this.setState({
+    //   notes: _notes
+    // });
+
+    // this.props.updateNotes(notes);
+
+    // console.log('Update Notas do Redux Pos => ', this.props.notes);
 
     return note.id;
 
@@ -133,9 +163,9 @@ class App extends Component{
     }
     return (
       <div className="app-content">
-        <Route exact path="/" component={(props) => <IndexPage {...props} notes = {this.state.notes} />} />
-        <Route exact path="/notes/:id" component={(props) => <ShowPage {...props} note={this.state.notes[props.match.params.id]}/>}/>
-        <Route exact path="/notes/edit/:id" component={(props) => <EditPage {...props} onUpdate={this.handleUpdate} note={this.state.notes[props.match.params.id]}/>}/>
+        <Route exact path="/" component={(props) => <IndexPage {...props} notes={this.props.notes} />} />
+        <Route exact path="/notes/:id" component={(props) => <ShowPage {...props} note={this.props.notes[props.match.params.id]}/>}/>
+        <Route exact path="/notes/edit/:id" component={(props) => <EditPage {...props} onUpdate={this.handleUpdate} note={this.props.notes[props.match.params.id]}/>}/>
         <Route exact path="/new" component={(props) => <NewPage {...props} onSave={this.handleSave} />} />
       </div>
     );
@@ -155,4 +185,14 @@ class App extends Component{
   
 }
 
-export default App;
+
+
+const mapStateToProps = state => ({
+  notes: state.notes
+});
+
+const mapDispatchToProps = dispatch => ({
+  updateNotes: (notes) => dispatch(updateNotes (notes)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

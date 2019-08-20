@@ -4,8 +4,10 @@ import NoteList from '../components/notelist';
 
 
 export default class IndexPage extends React.Component {
-    render() {
 
+    
+    render() {
+        //console.log(this.props);
         return (
             <div>
                 <h1>Notes</h1>

@@ -3,30 +3,30 @@ import PouchDB from 'pouchdb';
 export default class DB {
     constructor(name) {
         this.db = new PouchDB(name);
-
-       // console.log(this.db);
-        /*
-        this.remoteDB = new PouchDB('http://admin:adm123@127.0.0.1:5984/react-notes');
+        
+        /*this.remoteDB = new PouchDB('http://admin:adm123@127.0.0.1:5984/react-notes');
 
         this.db.sync(this.remoteDB, {
             
-        }).on('change', function (info) {
-        // handle change
-            console.log('Mudou!');
-        }).on('paused', function (err) {
-        // replication paused (e.g. replication up to date, user went offline)
-        }).on('active', function () {
-        // replicate resumed (e.g. new changes replicating, user went back online)
-        }).on('denied', function (err) {
-        // a document failed to replicate (e.g. due to permissions)
-        }).on('complete', function (info) {
-        // handle complete
-            console.log('Complete!');
-        }).on('error', function (err) {
-        // handle error
+            }).on('change', function (info) {
+            // handle change
+                console.log('Mudou no sync!');
+            }).on('paused', function (err) {
+            // replication paused (e.g. replication up to date, user went offline)
+            }).on('active', function () {
+            // replicate resumed (e.g. new changes replicating, user went back online)
+            }).on('denied', function (err) {
+            // a document failed to replicate (e.g. due to permissions)
+            }).on('complete', function (info) {
+            // handle complete
+                console.log('Complete!', info);
+            }).on('error', function (err) {
+            // handle error
         });
 
-        /*
+
+        
+
         this.remoteDB.changes({
             since: 'now',
             live: true,
@@ -35,6 +35,7 @@ export default class DB {
             style: 'all_docs'
         }).on('change', function(changes){
             console.log('Mudou1! => ', changes);
+            console.log("Redux on change => ", redux);
         });*/
           
     }
@@ -77,6 +78,8 @@ export default class DB {
 
         allNotes.rows.forEach( n => notes[n.id] = n.doc);
 
+        //console.log("Constructor", this.red);
+
         return notes;
 
     }
@@ -108,3 +111,4 @@ export default class DB {
 
 
 }
+

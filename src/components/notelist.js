@@ -9,6 +9,7 @@ export default class NoteList extends React.Component {
     }
 
     render(){
+    
         return (
             <div>
                 {this.renderNotes()}
